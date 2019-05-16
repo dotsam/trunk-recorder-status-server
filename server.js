@@ -46,7 +46,8 @@ server.on('upgrade', (request, socket, head) => {
     }
 });
 
-app.use(bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 function get_clients(req, res) {
@@ -149,7 +150,7 @@ clientWss.on('connection', function connection(ws, req) {
     ws.on('pong', heartbeat);
     console.log((new Date()) + ' WebSocket Connection accepted.');
     ws.on('message', function incoming(message) {
-        console.log("Got message: " + message);
+        // console.log("Got message: " + message);
         try {
             var data = JSON.parse(message);
             if (typeof data.type !== "undefined") {
@@ -162,9 +163,9 @@ clientWss.on('connection', function connection(ws, req) {
                     clients.push(client);
                     console.log("[ " + data.type + " ] Client added");
                     if (srv){
-                      console.log("Sending Srv config: " + srv.config);
+                      // console.log("Sending Srv config: " + srv.config);
                       ws.send(JSON.stringify(srv.config));
-                      console.log("Sent");
+                      // console.log("Sent");
                     }
                 }
                 var index = clients.indexOf(client);
@@ -181,7 +182,7 @@ clientWss.on('connection', function connection(ws, req) {
         } catch (err) {
             console.log("JSON PArsing Error: " + err);
         }
-        console.log('Received Message: ' + message);
+        //console.log('Received Message: ' + message);
     });
     ws.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Client ' + connection.remoteAddress + ' disconnected.');
@@ -216,15 +217,15 @@ serverWss.on('connection', function connection(ws, req) {
                         timestamp: new Date()
                     };
 
-                    console.log("[ " + data.type + " ] Server Live - Config rcv'd");
+                    //console.log("[ " + data.type + " ] Server Live - Config rcv'd");
               } else if (data.type == 'status') {
-                console.log("[ " + data.type + " ] Server - Status message ");
+                //console.log("[ " + data.type + " ] Server - Status message ");
               } else if (data.type == 'rates') {
-                console.log("[ " + data.type + " ] Server - Rate message ");
+                //console.log("[ " + data.type + " ] Server - Rate message ");
               }else if (data.type == 'calls_active') {
-                console.log("[ " + data.type + " ] Server - Calls message ");
+                //console.log("[ " + data.type + " ] Server - Calls message ");
             } else {
-                console.log("[ " + data.type + " ] Server - Uknown message type");
+                //console.log("[ " + data.type + " ] Server - Uknown message type");
               }
             } else {
               console.log("Server - Message type not defined");
@@ -237,7 +238,7 @@ serverWss.on('connection', function connection(ws, req) {
         } catch (err) {
             console.log("JSON PArsing Error: " + err);
         }
-        console.log('Received Message: ' + message);
+        //console.log('Received Message: ' + message);
     });
     ws.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Server ' + connection.remoteAddress + ' disconnected.');
