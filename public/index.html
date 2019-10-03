@@ -45,8 +45,6 @@
             <th>Emergency</th>
           </tr>
         </thead>
-        <tbody id="call-rows">
-        </tbody>
       </table>
     </div>
 
@@ -68,8 +66,9 @@
       function socketConnect(messageCallback) {
         if (!this._socket) {
           var protocol = 'ws:';
-          if (window.location.protocol === 'https:')
+          if (window.location.protocol === 'https:') {
             protocol = 'wss:';
+          }
 
           this._socket = new WebSocket(
             protocol + "//" + window.location.hostname +
@@ -83,6 +82,7 @@
 
           this._socket.onopen = function (e) {
             console.log('Socket Connected - sending add: ' + e);
+
             this._socket.send(JSON.stringify({
               type: 'add'
             }));
@@ -111,134 +111,140 @@
           if (typeof data.type !== "undefined") {
             if (data.type == 'config') {
               var sysCardHolder = $('#systems > .ui.cards');
-              sysCardHolder.empty();
-              for (var i = 0; i < data.systems.length; i++) {
-                var sysDetails =
-                  '<div class="title active"><i class="dropdown icon"></i>System Details</div>' +
-                  '<div class="content active">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">Short Name: ' + data.systems[i].shortName + '</div>' +
-                  '<div class="item">System Number: ' + data.systems[i].sysNum + '</div>' +
-                  '<div class="item">System Type: ' + data.systems[i].systemType + '</div>' +
-                  '<div class="item">Control Channels: ' + data.systems[i].channels.map(hzRound) + '</div>' +
-                  '<div class="item">Talkgroup File: ' + data.systems[i].talkgroupsFile + '</div>' +
-                  '</div>' +
-                  '</div>';
-
-                var recDetails =
-                  '<div class="title"><i class="dropdown icon"></i>Recodring Details</div>' +
-                  '<div class="content">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">Audio Archive: ' + data.systems[i].audioArchive + '</div>' +
-                  '<div class="item">Call Log: ' + data.systems[i].callLog + '</div>' +
-                  '<div class="item">Record Unknown: ' + data.systems[i].recordUnkown + '</div>' +
-                  '<div class="item">Upload Script: ' + data.systems[i].uploadScript + '</div>' +
-                  '</div>' +
-                  '</div>';
-
-                var bandPlanDetails = '';
-
-                if (data.systems[i].systemType === 'smartnet') {
-                  bandPlanDetails =
-                    '<div class="title"><i class="dropdown icon"></i>SmartNet Bandplan</div>' +
-                    '<div class="content">' +
-                    '<div class="ui bulleted list">' +
-                    '<div class="item">Type: ' + data.systems[i].bandplan + '</div>' +
-                    '<div class="item">Base Frequency: ' + mhzRound(data.systems[i].bandplan_base) + '</div>' +
-                    '<div class="item">Highest Frequency: ' + mhzRound(data.systems[i].bandplan_high) + '</div>' +
-                    '<div class="item">Spacing: ' + mhzRound(data.systems[i].bandplan_spacing) + '</div>' +
-                    '<div class="item">Offset: ' + mhzRound(data.systems[i].bandplan_offset) + '</div>' +
-                    '</div>' +
-                    '</div>';
-                }
-
-                var sysCard = $(
-                  '<div class="system card" data-sysid="' + i + '">' +
-                  '<div class="content">' +
-                  '<div class="header">' + data.systems[i].shortName + '</div>' +
-                  '<div class="meta">' + data.systems[i].systemType + '</div>' +
-                  '<div class="description"><div class="ui accordion">' +
-                  sysDetails +
-                  recDetails +
-                  bandPlanDetails +
-                  '</div></div>' +
-                  '</div>' +
-                  '<div class="rates extra content"><i class="check icon"></i><span class="rate"></span></div>' +
-                  '</div>'
-                );
-
-                sysCardHolder.append(sysCard);
-              }
-
               var srcCardHolder = $('#sources > .ui.cards');
+
+              sysCardHolder.empty();
               srcCardHolder.empty();
-              for (var i = 0; i < data.sources.length; i++) {
-                var lvlDetails =
-                  '<div class="title active"><i class="dropdown icon"></i>Levels</div>' +
-                  '<div class="content active">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">Analog Levels: ' + data.sources[i].analog_levels + '</div>' +
-                  '<div class="item">Digital Levels: ' + data.sources[i].digital_levels + '</div>' +
-                  '<div class="item">Squelch DB: ' + data.sources[i].squelch_db + '</div>' +
-                  '<div class="item">Silence Frames: ' + data.sources[i].silence_frames + '</div>' +
-                  '</div>' +
-                  '</div>';
 
-                var recdDetails =
-                  '<div class="title"><i class="dropdown icon"></i>Recorders</div>' +
-                  '<div class="content">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">Analog Recorders: ' + data.sources[i].analog_recorders + '</div>' +
-                  '<div class="item">Digital Recorders: ' + data.sources[i].digital_recorders + '</div>' +
-                  '<div class="item">Debug Recorders: ' + data.sources[i].debug_recorders + '</div>' +
-                  '<div class="item">SigMF Recorders: ' + data.sources[i].sigmf_recorders + '</div>' +
-                  '</div>' +
-                  '</div>';
+              if (data.servers) {
+                data.servers.forEach(function(server) {
+                  server.systems.forEach(function(system, i) {
+                    var sysDetails =
+                      '<div class="title active"><i class="dropdown icon"></i>System Details</div>' +
+                      '<div class="content active">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">Short Name: ' + system.shortName + '</div>' +
+                      '<div class="item">System Number: ' + system.sysNum + '</div>' +
+                      '<div class="item">System Type: ' + system.systemType + '</div>' +
+                      '<div class="item">Control Channels: ' + system.channels.map(hzRound) + '</div>' +
+                      '<div class="item">Talkgroup File: ' + system.talkgroupsFile + '</div>' +
+                      '</div>' +
+                      '</div>';
 
-                var devDetails =
-                  '<div class="title"><i class="dropdown icon"></i>Device and Tuning</div>' +
-                  '<div class="content">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">Driver: ' + data.sources[i].driver + '</div>' +
-                  '<div class="item">Device: ' + data.sources[i].device + '</div>' +
-                  '<div class="item">Antenna: ' + data.sources[i].antenna + '</div>' +
-                  '<div class="item">Center Frequency: ' + hzRound(data.sources[i].center) + '</div>' +
-                  '<div class="item">Tuning Error (Hz): ' + data.sources[i].error + '</div>' +
-                  '<div class="item">Sampling Rate: ' + hzRound(data.sources[i].rate) + '</div>' +
-                  '<div class="item">Min Tunable Freq: ' + hzRound(data.sources[i].min_hz) + '</div>' +
-                  '<div class="item">Max Tunable Freq: ' + hzRound(data.sources[i].max_hz) + '</div>' +
-                  '<div class="item">QPSK modulation: ' + data.sources[i].qpsk + '</div>' +
-                  '</div>' +
-                  '</div>';
+                    var recDetails =
+                      '<div class="title"><i class="dropdown icon"></i>Recording Details</div>' +
+                      '<div class="content">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">Audio Archive: ' + system.audioArchive + '</div>' +
+                      '<div class="item">Call Log: ' + system.callLog + '</div>' +
+                      '<div class="item">Record Unknown: ' + system.recordUnkown + '</div>' +
+                      '<div class="item">Upload Script: ' + system.uploadScript + '</div>' +
+                      '</div>' +
+                      '</div>';
 
-                var gainDetails =
-                  '<div class="title"><i class="dropdown icon"></i>Gain</div>' +
-                  '<div class="content">' +
-                  '<div class="ui bulleted list">' +
-                  '<div class="item">BB Gain: ' + data.sources[i].bb_gain + '</div>' +
-                  '<div class="item">Gain: ' + data.sources[i].gain + '</div>' +
-                  '<div class="item">IF Gain: ' + data.sources[i].if_gain + '</div>' +
-                  '<div class="item">LNA Gain: ' + data.sources[i].lna_gain + '</div>' +
-                  '<div class="item">Mix Gain: ' + data.sources[i].mix_gain + '</div>' +
-                  '</div>' +
-                  '</div>';
+                    var bandPlanDetails = '';
 
-                var srcCard = $(
-                  '<div class="source card">' +
-                  '<div class="content">' +
-                  '<div class="header">Source ' + (i + 1) + '</div>' +
-                  '<div class="meta">' + data.sources[i].device + '</div>' +
-                  '<div class="description"><div class="ui accordion">' +
-                  lvlDetails +
-                  recdDetails +
-                  devDetails +
-                  gainDetails +
-                  '</div></div>' +
-                  '</div>' +
-                  '</div>'
-                );
+                    if (system.systemType === 'smartnet') {
+                      bandPlanDetails =
+                        '<div class="title"><i class="dropdown icon"></i>SmartNet Bandplan</div>' +
+                        '<div class="content">' +
+                        '<div class="ui bulleted list">' +
+                        '<div class="item">Type: ' + system.bandplan + '</div>' +
+                        '<div class="item">Base Frequency: ' + mhzRound(system.bandplan_base) + '</div>' +
+                        '<div class="item">Highest Frequency: ' + mhzRound(system.bandplan_high) + '</div>' +
+                        '<div class="item">Spacing: ' + mhzRound(system.bandplan_spacing) + '</div>' +
+                        '<div class="item">Offset: ' + mhzRound(system.bandplan_offset) + '</div>' +
+                        '</div>' +
+                        '</div>';
+                    }
 
-                srcCardHolder.append(srcCard);
+                    var sysCard = $(
+                      '<div class="system card" data-sysid="' + i + '" data-instance="' + server.instanceId + '">' +
+                      '<div class="content">' +
+                      '<div class="header">' + system.shortName + '</div>' +
+                      '<div class="meta">' + system.systemType + '</div>' +
+                      '<div class="description"><div class="ui accordion">' +
+                      sysDetails +
+                      recDetails +
+                      bandPlanDetails +
+                      '</div></div>' +
+                      '</div>' +
+                      '<div class="rates extra content"><i class="check icon"></i><span class="rate"></span></div>' +
+                      '</div>'
+                    );
+
+                    sysCardHolder.append(sysCard);
+                  });
+
+                  server.sources.forEach(function(source, i) {
+                    var lvlDetails =
+                      '<div class="title active"><i class="dropdown icon"></i>Levels</div>' +
+                      '<div class="content active">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">Analog Levels: ' + source.analog_levels + '</div>' +
+                      '<div class="item">Digital Levels: ' + source.digital_levels + '</div>' +
+                      '<div class="item">Squelch DB: ' + source.squelch_db + '</div>' +
+                      '<div class="item">Silence Frames: ' + source.silence_frames + '</div>' +
+                      '</div>' +
+                      '</div>';
+
+                    var recdDetails =
+                      '<div class="title"><i class="dropdown icon"></i>Recorders</div>' +
+                      '<div class="content">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">Analog Recorders: ' + source.analog_recorders + '</div>' +
+                      '<div class="item">Digital Recorders: ' + source.digital_recorders + '</div>' +
+                      '<div class="item">Debug Recorders: ' + source.debug_recorders + '</div>' +
+                      '<div class="item">SigMF Recorders: ' + source.sigmf_recorders + '</div>' +
+                      '</div>' +
+                      '</div>';
+
+                    var devDetails =
+                      '<div class="title"><i class="dropdown icon"></i>Device and Tuning</div>' +
+                      '<div class="content">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">Driver: ' + source.driver + '</div>' +
+                      '<div class="item">Device: ' + source.device + '</div>' +
+                      '<div class="item">Antenna: ' + source.antenna + '</div>' +
+                      '<div class="item">Center Frequency: ' + hzRound(source.center) + '</div>' +
+                      '<div class="item">Tuning Error (Hz): ' + source.error + '</div>' +
+                      '<div class="item">Sampling Rate: ' + hzRound(source.rate) + '</div>' +
+                      '<div class="item">Min Tunable Freq: ' + hzRound(source.min_hz) + '</div>' +
+                      '<div class="item">Max Tunable Freq: ' + hzRound(source.max_hz) + '</div>' +
+                      '<div class="item">QPSK modulation: ' + source.qpsk + '</div>' +
+                      '</div>' +
+                      '</div>';
+
+                    var gainDetails =
+                      '<div class="title"><i class="dropdown icon"></i>Gain</div>' +
+                      '<div class="content">' +
+                      '<div class="ui bulleted list">' +
+                      '<div class="item">BB Gain: ' + source.bb_gain + '</div>' +
+                      '<div class="item">Gain: ' + source.gain + '</div>' +
+                      '<div class="item">IF Gain: ' + source.if_gain + '</div>' +
+                      '<div class="item">LNA Gain: ' + source.lna_gain + '</div>' +
+                      '<div class="item">Mix Gain: ' + source.mix_gain + '</div>' +
+                      '</div>' +
+                      '</div>';
+
+                    var srcCard = $(
+                      '<div class="source card">' +
+                      '<div class="content">' +
+                      '<div class="header">Source ' + (i + 1) + '</div>' +
+                      '<div class="meta">' + source.device + '</div>' +
+                      '<div class="description"><div class="ui accordion">' +
+                      lvlDetails +
+                      recdDetails +
+                      devDetails +
+                      gainDetails +
+                      '</div></div>' +
+                      '</div>' +
+                      '</div>'
+                    );
+
+                    srcCardHolder.append(srcCard);
+                  });
+                });
               }
 
               $('.ui.accordion').accordion();
@@ -246,7 +252,13 @@
             }
 
             if (data.type == 'calls_active') {
-              $('#call-rows').empty();
+              var $callRow = $('.call-rows[data-instance="' + data.instanceId + '"]');
+
+              if ($callRow.length > 0) {
+                $callRow.empty();
+              } else {
+                $callRow = $('<tbody class="call-rows" data-instance="' + data.instanceId + '" />').appendTo('table');
+              }
 
               for (var i = 0; i < data.calls.length; i++) {
                 var stateName = 'Monitoring';
@@ -275,15 +287,16 @@
                   '</tr>'
                 );
 
-                $('#call-rows').append(row);
+                $callRow.append(row);
               }
             }
 
             if (data.type == 'rates') {
               var rates = data.rates;
+
               for (var sys in rates) {
                 if (rates.hasOwnProperty(sys)) {
-                  var sysRate = $('.system.card[data-sysid="' + rates[sys].id + '"] > .rates .rate');
+                  var sysRate = $('.system.card[data-sysid="' + rates[sys].id + '"][data-instance="' + data.instanceId + '"] > .rates .rate');
                   sysRate.empty();
                   sysRate.html(Math.floor(parseInt(rates[sys].decoderate)) + ' Messages/second');
                 }
@@ -293,7 +306,7 @@
             console.error("Unknown data type: " + data);
           }
         } catch (err) {
-          console.error("JSON PArsing Error: " + err);
+          console.error("JSON Parsing Error: " + err);
         }
         // console.log('Received Message: ' + e.data);
       }
